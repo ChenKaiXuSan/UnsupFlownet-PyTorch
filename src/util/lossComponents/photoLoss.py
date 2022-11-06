@@ -1,13 +1,9 @@
-import tensorflow as tf
 import torch
 from components import *
 
 def photoLoss(flow,downsampledFrame0,downsampledFrame1,alpha,beta):
 
 	batchSize, c, height, width = flow.size()
-	
-	# outshape = tf.stack([height,width])
-	# outshape = torch.stack(height, width)
 
 	warpedFrame2 = flowWarp(downsampledFrame1,flow) # 1, 3, 224, 224
 
@@ -19,3 +15,10 @@ def photoLoss(flow,downsampledFrame0,downsampledFrame1,alpha,beta):
 	robustLoss = charbonnierLoss(photoDist,alpha,beta,0.001)
 
 	return robustLoss
+
+# robust generalized Charbonnier penalty function
+def charbonnierLoss(x,alpha,beta,epsilon):
+	epsilonSq = epsilon*epsilon
+	xScale = x*beta
+
+	return torch.pow(xScale * xScale + epsilonSq, alpha)

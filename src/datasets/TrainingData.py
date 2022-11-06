@@ -121,10 +121,9 @@ class TrainingData:
 
 
 def example_dataset(batchSize, instanceParams):
+
 	if instanceParams["dataset"] == "kitti2012" or instanceParams["dataset"] == "kitti2015":
 		datasetRoot = "/workspace/UnsupFlownet-PyTorch/example_data/"
-		desiredHeight = 320
-		desiredWidth = 1152
 	else:
 		assert False, "unknown dataset: " + instanceParams["dataset"]
 
@@ -140,8 +139,6 @@ def example_dataset(batchSize, instanceParams):
 	dataloader = torch.utils.data.DataLoader(dataset, batch_size=batchSize,
 											shuffle=True, num_workers=2)
 
-	# todo uptonow pytorch should load the data.
-	# queuing complete
 	return dataloader
 
 
@@ -152,6 +149,7 @@ def image_augmentation(imgs, batchSize, instanceParams):
 
 	img0raw = imgs[0].unsqueeze(dim=0)  # b, c, h, w
 	img1raw = imgs[1].unsqueeze(dim=0)  # b, c, h, w
+
 	mean = [[[[0.448553, 0.431021, 0.410602]]]]
 
 	## async section done ##
@@ -164,10 +162,11 @@ def image_augmentation(imgs, batchSize, instanceParams):
 	borderMask = validPixelMask(
 		torch.tensor([
 		1,
+		1,
 		img0raw.size()[2],
 		img0raw.size()[3],
-		1], dtype=torch.int32),
-		borderThicknessH, borderThicknessW).permute(0, 3, 1, 2)
+		], dtype=torch.int32),
+		borderThicknessH, borderThicknessW)
 
 	# imData0aug *= borderMask
 	# imData1aug *= borderMask

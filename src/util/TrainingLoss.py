@@ -1,9 +1,15 @@
+'''
+change the summary writer to torch.
+'''
+
 import tensorflow as tf
+from torch.utils.tensorboard import SummaryWriter
+
 from components import *
 from lossComponents import *
 
 class TrainingLoss:
-	def __init__(self,instanceParams,flows_F,flows_B, frame0, frame1, validMask):
+	def __init__(self,instanceParams,flows_F,flows_B, frame0, frame1, validMask, summaryWriter: SummaryWriter):
 		# hyperparams
 		weightDecay = instanceParams["weightDecay"]
 		lossComponents = instanceParams["lossComponents"]
@@ -13,11 +19,10 @@ class TrainingLoss:
 		predFlowB = flows_B
 		vpm = validMask
 
-		# todo
 		# unsup loss
-		recLossF = unsupFlowLoss(predFlowF,predFlowB,frame0,frame1,vpm,instanceParams)
+		recLossF = unsupFlowLoss(predFlowF,predFlowB,frame0,frame1,vpm,instanceParams, summaryWriter)
 		if lossComponents["backward"]:
-			recLossB = unsupFlowLoss(predFlowB,predFlowF,frame1,frame0,vpm,instanceParams)
+			recLossB = unsupFlowLoss(predFlowB,predFlowF,frame1,frame0,vpm,instanceParams, summaryWriter)
 
 		# weight decay
 		# todo
@@ -36,9 +41,12 @@ class TrainingLoss:
 			tf.summary.scalar("recLossB",tf.reduce_mean(recLossF*recLossBWeight))
 		else:
 			totalLoss = recLossF + weightLoss
-			tf.summary.scalar("recLossF",recLossF.item())
+			# tf.summary.scalar("recLossF",recLossF.item())
+			summaryWriter.add_scalar("recLossF", recLossF.item())
 
-		tf.summary.scalar("weightDecay", weightLoss)
-		tf.summary.scalar("totalLoss", totalLoss.item())
+		# tf.summary.scalar("weightDecay", weightLoss)
+		summaryWriter.add_scalar("weightDecay", weightLoss)
+		# tf.summary.scalar("totalLoss", totalLoss.item())
+		summaryWriter.add_scalar("totalLoss", totalLoss.item())
 
 		self.loss = totalLoss
